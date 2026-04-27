@@ -6,7 +6,7 @@ import os
 st.set_page_config(page_title="SIGAP v55 - Oráculo", layout="wide")
 
 # Substitua pelo link da sua planilha (com permissão de leitura)
-URL_PLANILHA = "SUA_URL_AQUI" 
+URL_PLANILHA = "https://docs.google.com/spreadsheets/d/1T6nDpD24-wG7xLF1Gt-YxRWxA-uFFy3DXSnp7gKrhek/edit?usp=sharing" 
 
 try:
     # Conexão com Google Sheets
