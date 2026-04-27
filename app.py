@@ -8,7 +8,7 @@ import os
 st.set_page_config(page_title="SIGAP v55 - Oráculo", layout="wide")
 
 # URL da sua Planilha (Certifique-se de que é a URL completa do navegador)
-URL_PLANILHA = "https://docs.google.com/spreadsheets/d/SEU_ID_DA_PLANILHA_AQUI"
+URL_PLANILHA = "https://docs.google.com/spreadsheets/d/1T6nDpD24-wG7xLF1Gt-YxRWxA-uFFy3DXSnp7gKrhek/edit?hl=pt-br&pli=1&gid=0#gid=0"
 
 def main():
     try:
