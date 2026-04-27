@@ -6,7 +6,7 @@ import pandas as pd
 st.set_page_config(page_title="SIGAP - Oráculo", layout="wide")
 
 # Conecta com a Planilha Google (Substitua pela sua URL)
-url = "COLE_AQUI_A_URL_DA_SUA_PLANILHA_GOOGLE"
+url = "https://docs.google.com/spreadsheets/d/1T6nDpD24-wG7xLF1Gt-YxRWxA-uFFy3DXSnp7gKrhek/edit?hl=pt-br&pli=1&gid=0#gid=0"
 
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
