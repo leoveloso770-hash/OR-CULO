@@ -4,58 +4,47 @@ from streamlit_gsheets import GSheetsConnection
 import json
 import os
 
-# 1. Configuração da Página
-st.set_page_config(
-    page_title="SIGAP v55 - Oráculo",
-    page_icon="🌊",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+# Configuração da página
+st.set_page_config(page_title="SIGAP v55 - Oráculo", layout="wide")
 
-# 2. Configurações de Conexão (Substitua pela sua URL se necessário)
-# Dica: No Streamlit Cloud, a URL pode ser passada via Secrets para maior segurança
+# COLE AQUI A URL DA SUA PLANILHA (A que você compartilhou no passo anterior)
 URL_PLANILHA = "https://docs.google.com/spreadsheets/d/1T6nDpD24-wG7xLF1Gt-YxRWxA-uFFy3DXSnp7gKrhek/edit?hl=pt-br&pli=1&gid=0#gid=0"
 
 def main():
     try:
-        # 3. Conexão com os dados (Google Sheets)
-        # O parâmetro ttl="0" garante que ele tente ler dados frescos
+        # Conexão usando as credenciais que você colou no painel 'Secrets' do Streamlit
         conn = st.connection("gsheets", type=GSheetsConnection)
+        
+        # Lê os dados da planilha
         df = conn.read(spreadsheet=URL_PLANILHA, ttl="2m")
         
-        # 4. Preparação dos dados para o Dashboard
-        # Transformamos o DataFrame em JSON para que o seu HTML original possa ler
-        dados_dict = df.to_dict(orient="records")
+        # Converte os dados para o formato que o seu Dashboard HTML entende
         dados_json = json.dumps({
-            "timestamp": st.session_state.get("last_update", "Recém atualizado"),
+            "timestamp": "Sincronizado via Nuvem",
             "totalRegistros": len(df),
-            "data": dados_dict
+            "data": df.to_dict(orient="records")
         }, ensure_ascii=False)
 
-        # 5. Carregamento do Dashboard HTML
-        nome_arquivo_html = "Dashboard_v55_AutoUpdate (1).html"
-        
-        if os.path.exists(nome_arquivo_html):
-            with open(nome_arquivo_html, "r", encoding="utf-8") as f:
-                html_content = f.read()
+        # Carrega o HTML do Dashboard
+        html_file = "Dashboard_v55_AutoUpdate (1).html"
+        if os.path.exists(html_file):
+            with open(html_file, "r", encoding="utf-8") as f:
+                content = f.read()
             
-            # Ajuste dinâmico: injetamos os dados do Sheets direto no HTML 
-            # para garantir que ele funcione mesmo sem o arquivo dados_sigap.json local
-            html_final = html_content.replace(
+            # Ajuste para o HTML ler os dados da planilha em vez de procurar um arquivo local
+            html_final = content.replace(
                 "fetch('dados_sigap.json')", 
                 f"Promise.resolve(new Response('{dados_json}'))"
             )
-
-            # 6. Renderização
-            components.html(html_final, height=1500, scrolling=True)
+            
+            components.html(html_final, height=1300, scrolling=True)
         else:
-            st.error(f"Erro: O arquivo {nome_arquivo_html} não foi encontrado no GitHub.")
-            st.info("Certifique-se de que o nome do arquivo HTML no repositório é exatamente igual ao configurado no código.")
+            st.error(f"Arquivo {html_file} não encontrado no GitHub.")
 
     except Exception as e:
-        st.error("⚠️ Ocorreu um problema na conexão com os dados.")
-        st.code(f"Erro detalhado: {e}")
-        st.info("Verifique se você compartilhou a planilha com o e-mail da conta de serviço.")
+        st.error("❌ Erro de Autenticação com o Google")
+        st.write("Certifique-se de que colou o JSON no menu 'Secrets' do Streamlit Cloud.")
+        st.code(e)
 
 if __name__ == "__main__":
     main()
