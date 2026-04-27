@@ -5,15 +5,16 @@ import os
 
 st.set_page_config(page_title="SIGAP v55 - Oráculo", layout="wide")
 
-# Substitua pelo link da sua planilha (com permissão de leitura)
-URL_PLANILHA = "https://docs.google.com/spreadsheets/d/1T6nDpD24-wG7xLF1Gt-YxRWxA-uFFy3DXSnp7gKrhek/edit?usp=sharing" 
+# URL da sua Planilha Google (deve estar com acesso 'Qualquer pessoa com o link')
+URL_PLANILHA = "https://docs.google.com/spreadsheets/d/1T6nDpD24-wG7xLF1Gt-YxRWxA-uFFy3DXSnp7gKrhek/edit?hl=pt-br&pli=1&gid=0#gid=0" 
 
 try:
-    # Conexão com Google Sheets
+    # Conexão com o banco de dados (Google Sheets)
     conn = st.connection("gsheets", type=GSheetsConnection)
-    df = conn.read(spreadsheet=URL_PLANILHA)
+    # Apenas para validar a conexão silenciosamente
+    data = conn.read(spreadsheet=URL_PLANILHA, ttl="5m")
     
-    # Carrega o seu HTML original
+    # Exibe seu Dashboard HTML
     if os.path.exists("Dashboard_v55_AutoUpdate (1).html"):
         with open("Dashboard_v55_AutoUpdate (1).html", "r", encoding="utf-8") as f:
             html = f.read()
@@ -22,4 +23,4 @@ try:
         st.error("Arquivo HTML não encontrado no repositório.")
 
 except Exception as e:
-    st.error(f"Erro ao carregar dados: {e}")
+    st.error(f"Erro de Conexão: {e}")
