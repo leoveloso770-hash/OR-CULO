@@ -14,7 +14,7 @@ st.set_page_config(
 
 # 2. Configurações de Conexão (Substitua pela sua URL se necessário)
 # Dica: No Streamlit Cloud, a URL pode ser passada via Secrets para maior segurança
-URL_PLANILHA = "https://docs.google.com/spreadsheets/d/SEU_ID_DA_PLANILHA_AQUI"
+URL_PLANILHA = "https://docs.google.com/spreadsheets/d/1T6nDpD24-wG7xLF1Gt-YxRWxA-uFFy3DXSnp7gKrhek/edit?hl=pt-br&pli=1&gid=0#gid=0"
 
 def main():
     try:
