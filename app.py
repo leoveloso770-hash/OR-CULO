@@ -7,31 +7,32 @@ import os
 # Configuração da página
 st.set_page_config(page_title="SIGAP v55 - Oráculo", layout="wide")
 
-# COLE AQUI A URL DA SUA PLANILHA (A que você compartilhou no passo anterior)
-URL_PLANILHA = "https://docs.google.com/spreadsheets/d/1T6nDpD24-wG7xLF1Gt-YxRWxA-uFFy3DXSnp7gKrhek/edit?hl=pt-br&pli=1&gid=0#gid=0"
+# URL da sua Planilha (Certifique-se de que é a URL completa do navegador)
+URL_PLANILHA = "https://docs.google.com/spreadsheets/d/SEU_ID_DA_PLANILHA_AQUI"
 
 def main():
     try:
-        # Conexão usando as credenciais que você colou no painel 'Secrets' do Streamlit
+        # A conexão 'gsheets' vai buscar automaticamente o que estiver no seu Secrets
         conn = st.connection("gsheets", type=GSheetsConnection)
         
-        # Lê os dados da planilha
+        # Tentativa de leitura
         df = conn.read(spreadsheet=URL_PLANILHA, ttl="2m")
         
-        # Converte os dados para o formato que o seu Dashboard HTML entende
+        # Se chegou aqui, a conexão funcionou! 
+        # Vamos preparar os dados para o seu HTML
         dados_json = json.dumps({
-            "timestamp": "Sincronizado via Nuvem",
+            "timestamp": "Sincronizado via Google Sheets",
             "totalRegistros": len(df),
             "data": df.to_dict(orient="records")
         }, ensure_ascii=False)
 
-        # Carrega o HTML do Dashboard
+        # Carregar o seu Dashboard HTML
         html_file = "Dashboard_v55_AutoUpdate (1).html"
         if os.path.exists(html_file):
             with open(html_file, "r", encoding="utf-8") as f:
                 content = f.read()
             
-            # Ajuste para o HTML ler os dados da planilha em vez de procurar um arquivo local
+            # Injeta os dados da planilha direto no HTML
             html_final = content.replace(
                 "fetch('dados_sigap.json')", 
                 f"Promise.resolve(new Response('{dados_json}'))"
@@ -39,11 +40,11 @@ def main():
             
             components.html(html_final, height=1300, scrolling=True)
         else:
-            st.error(f"Arquivo {html_file} não encontrado no GitHub.")
+            st.error(f"Arquivo {html_file} não encontrado no repositório.")
 
     except Exception as e:
-        st.error("❌ Erro de Autenticação com o Google")
-        st.write("Certifique-se de que colou o JSON no menu 'Secrets' do Streamlit Cloud.")
+        st.error("❌ Erro de Autenticação (401)")
+        st.info("O Google recusou a conexão. Verifique os 2 pontos abaixo:")
         st.code(e)
 
 if __name__ == "__main__":
