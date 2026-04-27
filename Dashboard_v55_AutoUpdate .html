@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGAP v55 - ORÁCULO PLATINUM</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<!-- jsPDF + AutoTable para exportação PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg-dark: #020617;
+    --sidebar-bg: #0f172a;
+    --card-bg: #1e293b;
+    --border: #334155;
+    --accent: #3b82f6;
+    --success: #22c55e;
+    --exec: #f97316;
+    --warning: #eab308;
+    --vistoria: #a855f7;
+    --programado: #06b6d4;
+    --danger: #ef4444;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --sidebar-width: 280px;
+}
+
+* { box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 20px 16px;
+    flex-shrink: 0;
+    transition: width 0.25s ease, padding 0.25s ease;
+    overflow: hidden;
+}
+.sidebar.collapsed { width: 56px; padding: 20px 8px; }
+.sidebar.collapsed .hide-collapsed { display: none; }
+
+.sidebar-toggle {
+    position: absolute; top: 16px; left: calc(var(--sidebar-width) - 16px);
+    width: 28px; height: 28px;
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; z-index: 100; transition: left 0.25s ease;
+    color: var(--text-muted);
+}
+.sidebar-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+.brand-box { border-bottom: 2px solid var(--accent); padding-bottom: 12px; margin-bottom: 20px; }
+.brand-box h1 { font-size: 18px; margin: 0; font-weight: 800; letter-spacing: -1px; color: var(--accent); white-space: nowrap; }
+.brand-box span { font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+
+.nav-link {
+    padding: 10px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 6px;
+    font-weight: 600; font-size: 12px; color: var(--text-muted);
+    transition: 0.2s; display: flex; align-items: center; gap: 10px;
+    white-space: nowrap;
+}
+.nav-link:hover { background: var(--card-bg); color: #fff; }
+.nav-link.active { background: var(--accent); color: #fff; }
+
+.staff-box {
+    padding: 12px; background: rgba(255,255,255,0.03);
+    border-radius: 10px; border: 1px solid var(--border); font-size: 11px;
+    margin-bottom: 8px; border-left: 3px solid var(--accent);
+}
+.staff-box label { font-size: 8px; color: var(--accent); font-weight: 800; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.staff-box b { font-size: 11px; }
+.staff-email { font-size: 9px; color: var(--text-muted); display: block; margin-top: 2px; }
+.staff-whatsapp {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 6px; padding: 4px 10px; background: rgba(37,211,102,0.12);
+    border: 1px solid rgba(37,211,102,0.3); border-radius: 6px;
+    color: #25d366; font-size: 9px; font-weight: 700; cursor: pointer;
+    text-decoration: none; transition: 0.2s;
+}
+.staff-whatsapp:hover { background: rgba(37,211,102,0.25); color: #25d366; }
+.leonardo-name {
+    cursor: pointer;
+    transition: 0.2s;
+}
+.leonardo-name:hover { color: #25d366; }
+
+/* ── MAIN ── */
+.main-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; padding: 24px; gap: 14px; }
+
+/* ── TOP SECTION ── */
+.top-section { display: grid; grid-template-columns: 1.4fr 0.9fr 1.2fr; gap: 16px; flex-shrink: 0; }
+
+/* ── ORÁCULO ENGINE ── */
+.oraculo-panel {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid var(--accent); border-radius: 14px; padding: 16px;
+    box-shadow: 0 0 30px rgba(59,130,246,0.08);
+    display: flex; flex-direction: column; gap: 8px;
+    overflow-y: auto;
+}
+.oraculo-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.oraculo-header h3 { font-size: 12px; margin: 0; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+
+.insight-row {
+    display: flex; gap: 6px;
+    padding: 6px 8px; border-radius: 7px;
+    cursor: pointer; transition: 0.18s;
+    border: 1px solid transparent;
+}
+.insight-row:hover { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.2); }
+.insight-row.active-filter { background: rgba(59,130,246,0.14); border-color: var(--accent); }
+.insight-row-title { font-size: 9px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin: 4px 0 2px 0; letter-spacing: 0.5px; }
+
+.insight-badge {
+    padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 800;
+    text-transform: uppercase; white-space: nowrap; flex-shrink: 0; height: fit-content;
+}
+.badge-danger { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+.badge-warning { background: rgba(234,179,8,0.15); color: var(--warning); border: 1px solid rgba(234,179,8,0.3); }
+.badge-info { background: rgba(59,130,246,0.15); color: var(--accent); border: 1px solid rgba(59,130,246,0.3); }
+.badge-success { background: rgba(34,197,94,0.15); color: var(--success); border: 1px solid rgba(34,197,94,0.3); }
+.badge-purple { background: rgba(168,85,247,0.15); color: var(--vistoria); border: 1px solid rgba(168,85,247,0.3); }
+
+.insight-text { font-size: 11px; color: #bfdbfe; line-height: 1.4; }
+.oraculo-empty { font-size: 12px; color: var(--text-muted); line-height: 1.6; padding: 8px 0; }
+.oraculo-click-hint { font-size: 9px; color: var(--text-muted); margin-top: 4px; text-align: center; opacity: 0.7; }
+
+/* ── CHART ── */
+.chart-card { background: var(--sidebar-bg); border-radius: 14px; border: 1px solid var(--border); padding: 12px; display: flex; flex-direction: column; }
+.chart-card h4 { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin: 0 0 8px 0; }
+
+/* ── KPI GRID INTERATIVA ── */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kpi-card {
+    background: var(--sidebar-bg); padding: 12px; border-radius: 10px;
+    border: 1px solid var(--border); text-align: center; border-left: 4px solid transparent;
+    cursor: pointer; transition: 0.2s; user-select: none;
+    position: relative; overflow: hidden;
+}
+.kpi-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: transparent; transition: 0.2s;
+    border-radius: 10px;
+}
+.kpi-card:hover::after { background: rgba(255,255,255,0.03); }
+.kpi-card.kpi-active { box-shadow: 0 0 0 2px var(--accent) inset; }
+.kpi-card label { font-size: 8px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; display: block; cursor: pointer; }
+.kpi-card div { font-size: 20px; font-weight: 800; margin-top: 4px; }
+.kpi-card:hover label { color: var(--text-main); }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+    background: var(--sidebar-bg); padding: 10px 16px; border-radius: 12px;
+    border: 1px solid var(--border); display: flex; gap: 8px; align-items: center;
+    flex-shrink: 0; flex-wrap: wrap;
+}
+.filter-bar input, .filter-bar select {
+    background: var(--bg-dark); border: 1px solid var(--border); color: white;
+    padding: 8px 12px; border-radius: 8px; font-size: 12px; outline: none;
+    font-family: inherit;
+}
+.filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); }
+.filter-bar input { flex-grow: 1; min-width: 180px; }
+.filter-bar select { min-width: 130px; }
+.filter-period { display: flex; gap: 6px; align-items: center; }
+.filter-period label { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+.filter-period input[type="date"] {
+    padding: 7px 10px; font-size: 11px; min-width: 0; width: 130px;
+    color-scheme: dark;
+}
+
+.btn-action {
+    padding: 8px 13px; border-radius: 8px; cursor: pointer; font-size: 11px;
+    font-weight: 700; border: none; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+    white-space: nowrap; font-family: inherit;
+}
+.btn-action:hover { filter: brightness(1.15); }
+.btn-60 {
+    background: transparent; color: var(--danger); border: 1px solid var(--danger) !important;
+}
+.btn-60.active-60 { background: var(--danger) !important; color: #fff; }
+
+/* ── TABLE ── */
+.table-wrapper { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
+.table-container { background: var(--sidebar-bg); border-radius: 12px; border: 1px solid var(--border); overflow-y: auto; flex-grow: 1; }
+table { width: 100%; border-collapse: collapse; font-size: 11px; }
+thead th { background: var(--card-bg); padding: 12px 14px; text-align: left; color: var(--text-muted); cursor: pointer; position: sticky; top: 0; border-bottom: 2px solid var(--border); z-index: 5; font-size: 10px; font-weight: 700; text-transform: uppercase; user-select: none; }
+thead th:hover { color: var(--text-main); }
+tbody td { padding: 10px 14px; border-bottom: 1px solid rgba(51,65,85,0.5); transition: background-color 0.15s; }
+tbody tr:hover td { background-color: rgba(255,255,255,0.04); }
+.row-executed { opacity: 0.4; filter: grayscale(60%); }
+
+/* ── FOOTER TABLE ── */
+.table-footer { padding: 8px 16px; font-size: 10px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+
+/* ── DOTS & TAGS ── */
+.dot { height: 7px; width: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.dot-red { background-color: var(--danger); box-shadow: 0 0 6px var(--danger); }
+.dot-yellow { background-color: var(--warning); }
+.dot-green { background-color: var(--success); }
+.dot-done { background-color: #475569; }
+
+.status-tag { padding: 3px 7px; border-radius: 4px; font-weight: 800; font-size: 9px; text-transform: uppercase; }
+
+/* ── DETAIL PANEL ── */
+.detail-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; }
+.detail-overlay.open { display: block; }
+.detail-panel {
+    position: fixed; top: 0; right: -440px; width: 440px; height: 100vh;
+    background: var(--sidebar-bg); border-left: 1px solid var(--border);
+    z-index: 201; overflow-y: auto; transition: right 0.3s ease;
+    padding: 24px;
+}
+.detail-panel.open { right: 0; }
+.detail-panel h2 { font-size: 22px; color: var(--accent); margin: 0 0 4px 0; }
+.detail-panel h3 { font-size: 12px; color: var(--text-muted); margin: 0 0 20px 0; font-weight: 400; }
+.detail-close { position: absolute; top: 16px; right: 16px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.detail-close:hover { color: #fff; border-color: var(--danger); }
+.detail-row { display: flex; flex-direction: column; gap: 3px; margin-bottom: 14px; }
+.detail-row label { font-size: 9px; color: var(--accent); font-weight: 800; text-transform: uppercase; }
+.detail-row span { font-size: 13px; color: var(--text-main); line-height: 1.4; }
+.detail-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+.detail-diag { background: var(--card-bg); border-radius: 10px; padding: 14px; font-size: 12px; line-height: 1.6; color: #bfdbfe; border-left: 3px solid var(--accent); }
+.detail-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+
+/* ── LOADING ── */
+.loading-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(2,6,23,0.85);
+    z-index: 500; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+}
+.loading-overlay.show { display: flex; }
+.spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+
+/* ── TOAST ── */
+#toast { visibility: hidden; background: var(--success); color: #fff; padding: 12px 24px; border-radius: 8px; position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 1000; font-size: 13px; font-weight: 600; }
+#toast.show { visibility: visible; animation: fadeInOut 2s; }
+@keyframes fadeInOut { 0%{opacity:0} 10%{opacity:1} 80%{opacity:1} 100%{opacity:0} }
+
+/* ── LAST UPDATE TAG ── */
+.last-update { font-size: 9px; color: var(--text-muted); padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--border); }
+.last-update b { color: var(--success); }
+
+/* ── PAGINATION ── */
+.pagination { display: flex; gap: 4px; align-items: center; }
+.pg-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-family: inherit; }
+.pg-btn:hover { border-color: var(--accent); color: var(--accent); }
+.pg-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.pg-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── ACTIVE FILTER INDICATOR ── */
+.filter-active-badge {
+    display: none; background: rgba(239,68,68,0.15); color: var(--danger);
+    border: 1px solid rgba(239,68,68,0.3); border-radius: 5px;
+    padding: 2px 7px; font-size: 9px; font-weight: 800;
+}
+.filter-active-badge.show { display: inline-block; }
+
+@media print {
+    .sidebar, .filter-bar, .top-section, .btn-action, input[type="checkbox"], .table-footer, .detail-panel, .detail-overlay { display: none !important; }
+    .main-content { padding: 0; overflow: visible; }
+    .table-container { overflow: visible; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <div class="brand-box hide-collapsed">
+        <h1>SIGAP | ORÁCULO</h1>
+        <span>Secretaria de Obras — Taubaté</span>
+    </div>
+    <div class="nav-link active">📊 <span class="hide-collapsed">Dashboard Operacional</span></div>
+    <div id="btnAutoUpdate" class="nav-link" onclick="carregarJsonAutomatico(true)" style="border:1px solid var(--accent); color:var(--accent);">🔄 <span class="hide-collapsed">Atualizar Dados (Auto)</span></div>
+    <div class="nav-link" onclick="document.getElementById('fileInp').click()">📥 <span class="hide-collapsed">Importar Backup Manual</span></div>
+    <div class="nav-link" onclick="window.print()">🖨️ <span class="hide-collapsed">PDF Relatório</span></div>
+    <div class="nav-link" onclick="gerarParecerPDF()">📝 <span class="hide-collapsed">Gerar Parecer PDF</span></div>
+    <div class="nav-link" onclick="gerarSuperOSPDF()" style="color: var(--success);">📋 <span class="hide-collapsed">Super OS PDF <span id="selCount"></span></span></div>
+
+    <div id="lastUpdateBox" class="last-update hide-collapsed" style="display:none;">
+        Última importação: <b id="lastUpdateTime">—</b>
+    </div>
+
+    <div style="margin-top: auto;"></div>
+
+    <div class="staff-box hide-collapsed">
+        <label>Desenvolvedor e Adm</label>
+        <b class="leonardo-name" onclick="abrirWhatsApp()" title="Contatar via WhatsApp">Leonardo K. Veloso</b>
+        <span class="staff-email">leonardo.veloso@taubate.sp.gov.br</span>
+        <a class="staff-whatsapp" onclick="abrirWhatsApp()">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Suporte WhatsApp
+        </a>
+    </div>
+    <div class="staff-box hide-collapsed">
+        <label>Responsável Administrativo</label>
+        <b>Cesar de Carvalho</b>
+        <span class="staff-email">cesar.carvalho@taubate.sp.gov.br</span>
+    </div>
+    <input type="file" id="fileInp" style="display:none" accept=".xlsx,.csv">
+</div>
+
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Recolher menu">◀</button>
+
+<!-- MAIN -->
+<div class="main-content">
+
+    <!-- TOP SECTION -->
+    <div class="top-section">
+
+        <!-- ORÁCULO ENGINE -->
+        <div class="oraculo-panel" id="oraculoPanel">
+            <div class="oraculo-header">
+                <div class="pulse"></div>
+                <h3>🧠 Engine Oráculo</h3>
+                <span class="filter-active-badge" id="oraculoFilterBadge">Filtro Ativo</span>
+            </div>
+            <p class="oraculo-empty" id="oraculoEmpty">Aguardando importação da base de dados...</p>
+            <div id="oraculoInsights" style="display:none; flex-direction:column; gap:4px;"></div>
+            <div class="oraculo-click-hint" id="oraculoHint" style="display:none;">💡 Clique em um insight para filtrar</div>
+        </div>
+
+        <!-- CHART -->
+        <div class="chart-card">
+            <h4>Distribuição por Status</h4>
+            <div style="flex-grow:1; position:relative; min-height:120px;">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- KPIs INTERATIVOS -->
+        <div class="kpi-grid">
+            <div class="kpi-card" id="kpiPlan" style="border-left-color: var(--warning);" onclick="filtrarPorKpi('PLANEJAMENTO')" title="Filtrar por Planejamento">
+                <label>Planej.</label><div id="kPlan">0</div>
+            </div>
+            <div class="kpi-card" id="kpiProg" style="border-left-color: var(--programado);" onclick="filtrarPorKpi('PROGRAMADO')" title="Filtrar por Programado">
+                <label>Program.</label><div id="kProg">0</div>
+            </div>
+            <div class="kpi-card" id="kpiVist" style="border-left-color: var(--vistoria);" onclick="filtrarPorKpi('VISTORIA')" title="Filtrar por Vistoria">
+                <label>Vistoria</label><div id="kVist">0</div>
+            </div>
+            <div class="kpi-card" id="kpiExec" style="border-left-color: var(--exec);" onclick="filtrarPorKpi('EXECUÇÃO')" title="Filtrar por Execução">
+                <label>Execução</label><div id="kExec">0</div>
+            </div>
+            <div class="kpi-card" id="kpiDone" style="border-left-color: var(--success); grid-column: 1 / -1;" onclick="filtrarPorKpi('EXECUTADO')" title="Filtrar por Concluído">
+                <label>Concluídos</label><div id="kDone">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-bar">
+        <input type="text" id="mainSearch" placeholder="🔍  Busca global: Rua, Bairro, OS, Processo..." oninput="onFilterChange()">
+        <select id="filterStatus" onchange="onFilterChange()">
+            <option value="">Status: Todos</option>
+            <option value="PLANEJAMENTO">Planejamento</option>
+            <option value="VISTORIA">Vistoria</option>
+            <option value="PROGRAMADO">Programado</option>
+            <option value="EXECUÇÃO">Execução</option>
+            <option value="EXECUTADO">Concluído</option>
+        </select>
+        <div class="filter-period">
+            <label>De:</label>
+            <input type="date" id="filterDtIni" onchange="onFilterChange()" title="Data inicial">
+            <label>Até:</label>
+            <input type="date" id="filterDtFim" onchange="onFilterChange()" title="Data final">
+        </div>
+        <button class="btn-action btn-60" onclick="toggle60Dias()" id="btn60" title="Filtrar OS com mais de 60 dias paradas">🔴 +60 Dias</button>
+        <button class="btn-action" onclick="toggleGargalo()" id="btnGargalo" style="background:transparent; color:var(--warning); border:1px solid var(--warning);">⚠️ +30 Dias</button>
+        <button class="btn-action" onclick="limparFiltros()" style="background:var(--card-bg); color:#fff; border:1px solid var(--border);">🧹 Limpar</button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrapper">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="32"><input type="checkbox" id="checkAll" onclick="toggleAllChecks(this)"></th>
+                        <th onclick="ordenar('dataInc')">Inclusão ↕</th>
+                        <th onclick="ordenar('ordem')">OS / Processo ↕</th>
+                        <th onclick="ordenar('endereco')">Endereço ↕</th>
+                        <th onclick="ordenar('bairro')">Bairro ↕</th>
+                        <th>Status</th>
+                        <th onclick="ordenar('dataProg')">Programado ↕</th>
+                        <th onclick="ordenar('diasNum')">Atraso ↕</th>
+                        <th width="32"></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="table-footer">
+            <span id="recordCount">Nenhum dado carregado</span>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detailPanel">
+    <div class="detail-close" onclick="closeDetail()">✕</div>
+    <div id="detailContent"></div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Processando base de dados...</div>
+</div>
+
+<div id="toast">✓ Copiado!</div>
+
+<script>
+// ─────────────────────────────────────────────
+// ESTADO CENTRALIZADO
+// ─────────────────────────────────────────────
+const AppState = {
+    database: [],
+    filtered: [],
+    sortCol: 'dataInc',
+    sortDir: -1,
+    fGargalo: false,
+    f60Dias: false,
+    fKpi: '',
+    fOraculoFilter: null,
+    page: 1,
+    pageSize: 50,
+    sidebarCollapsed: false,
+    myChart: null
+};
+
+const REQUIRED_COLS = ["ORDEM", "SITUAÇÃO", "DATA DE INCLUSÃO", "ENDEREÇO"];
+const STATUS_COLORS = {
+    'PLANEJAMENTO': 'var(--warning)',
+    'PROGRAMADO':   'var(--programado)',
+    'VISTORIA':     'var(--vistoria)',
+    'EXECUÇÃO':     'var(--exec)',
+    'EXECUTADO':    'var(--success)',
+};
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+window.onload = function() {
+    initChart();
+    tryRestoreFromStorage();
+    updateSidebarTogglePos();
+    // Tenta carregar JSON automático (gerado pelo script Python)
+    iniciarAutoUpdate();
+};
+
+function initChart() {
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    AppState.myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Plan.', 'Prog.', 'Vist.', 'Exec.', 'Concl.'],
+            datasets: [{
+                data: [0,0,0,0,0],
+                backgroundColor: ['#eab308','#06b6d4','#a855f7','#f97316','#22c55e'],
+                borderWidth: 0, borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 9 }, padding: 6 } } },
+            cutout: '65%'
+        }
+    });
+}
+
+// ─────────────────────────────────────────────
+// WHATSAPP — LEONARDO
+// ─────────────────────────────────────────────
+function abrirWhatsApp() {
+    const num = '5512991427264';
+    const msg = encodeURIComponent('Olá Leonardo, estou usando o sistema SIGAP Oráculo e preciso de suporte. Pode me ajudar?');
+    window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
+}
+
+// ─────────────────────────────────────────────
+// SIDEBAR
+// ─────────────────────────────────────────────
+function toggleSidebar() {
+    AppState.sidebarCollapsed = !AppState.sidebarCollapsed;
+    const sb = document.getElementById('sidebar');
+    const btn = document.getElementById('sidebarToggle');
+    sb.classList.toggle('collapsed', AppState.sidebarCollapsed);
+    btn.textContent = AppState.sidebarCollapsed ? '▶' : '◀';
+    updateSidebarTogglePos();
+}
+function updateSidebarTogglePos() {
+    const btn = document.getElementById('sidebarToggle');
+    btn.style.left = AppState.sidebarCollapsed ? '44px' : 'calc(var(--sidebar-width) - 16px)';
+}
+
+// ─────────────────────────────────────────────
+// IMPORTAÇÃO
+// ─────────────────────────────────────────────
+document.getElementById('fileInp').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (AppState.database.length > 0) {
+        const ok = confirm(`Base atual possui ${AppState.database.length} registros.\nDeseja substituir pela nova importação?`);
+        if (!ok) { this.value = ''; return; }
+    }
+    showLoading('Lendo arquivo Excel...');
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+        try { setTimeout(() => { processXLSX(evt.target.result, file.name); }, 50); }
+        catch(err) { hideLoading(); alert('Erro ao processar arquivo: ' + err.message); }
+    };
+    reader.readAsBinaryString(file);
+    this.value = '';
+});
+
+function processXLSX(binaryStr, fileName) {
+    try {
+        const wb = XLSX.read(binaryStr, { type: 'binary' });
+        const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('base')) || wb.SheetNames[0];
+        const ws = wb.Sheets[sheetName];
+        const rawJson = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+        let headerRowIndex = rawJson.findIndex(row =>
+            row.some(c => String(c).toUpperCase().includes('ORDEM'))
+        );
+        if (headerRowIndex === -1) headerRowIndex = 0;
+
+        const headers = rawJson[headerRowIndex].map(h => String(h).trim().toUpperCase());
+        const missing = REQUIRED_COLS.filter(c => !headers.some(h => h.includes(c.toUpperCase())));
+        if (missing.length > 0) {
+            hideLoading();
+            alert(`⚠️ Arquivo inválido!\n\nColunas não encontradas: ${missing.join(', ')}\n\nVerifique se selecionou o arquivo correto.`);
+            return;
+        }
+
+        const getIdx = (name) => headers.findIndex(h => h.includes(name.toUpperCase()));
+        const iOrdem    = getIdx('ORDEM');
+        const iSituacao = getIdx('SITUAÇÃO') !== -1 ? getIdx('SITUAÇÃO') : getIdx('SITUACAO');
+        const iDataInc  = getIdx('DATA DE INCLUSÃO') !== -1 ? getIdx('DATA DE INCLUSÃO') : getIdx('DATA DE INCLUSAO');
+        const iDataProg = getIdx('DATA PROGRAMADA');
+        const iTipoProc = getIdx('TIPO DO PROCESSO');
+        const iNumProc  = getIdx('Nº DO PROCESSO') !== -1 ? getIdx('Nº DO PROCESSO') : getIdx('N DO PROCESSO');
+        const iEndereco = getIdx('ENDEREÇO') !== -1 ? getIdx('ENDEREÇO') : getIdx('ENDERECO');
+        const iBairro   = getIdx('BAIRRO');
+        const iProblema = getIdx('PROBLEMA');
+
+        const dataRows = rawJson.slice(headerRowIndex + 1);
+        let parsed = [], dateWarnings = 0;
+
+        dataRows.forEach((row, idx) => {
+            const ordemVal = row[iOrdem];
+            if (!ordemVal || String(ordemVal).trim() === '') return;
+
+            const situacaoRaw = String(row[iSituacao] || '').toUpperCase().trim();
+            const situacao = normalizeSituacao(situacaoRaw);
+
+            const dtIncResult = parseDate(row[iDataInc]);
+            const dtProgResult = parseDate(row[iDataProg >= 0 ? iDataProg : -1]);
+
+            if (!dtIncResult.valid) dateWarnings++;
+
+            const isDone = situacao.includes('EXECUTADO');
+            const dtInc = dtIncResult.date;
+            const dias = (isDone || !dtInc || !dtIncResult.valid)
+                ? 0
+                : Math.max(0, Math.floor((new Date() - dtInc) / 86400000));
+
+            parsed.push({
+                id: idx,
+                dataInc:  dtInc,
+                dataProg: dtProgResult.valid ? dtProgResult.date : null,
+                ordem:    String(ordemVal).trim(),
+                tipoProc: String(row[iTipoProc >= 0 ? iTipoProc : -1] || '').trim(),
+                numProc:  String(row[iNumProc >= 0 ? iNumProc : -1] || '').trim(),
+                endereco: String(row[iEndereco >= 0 ? iEndereco : -1] || '').trim(),
+                bairro:   String(row[iBairro >= 0 ? iBairro : -1] || '').toUpperCase().trim(),
+                problema: String(row[iProblema >= 0 ? iProblema : -1] || '').trim(),
+                situacao, isDone, diasNum: dias
+            });
+        });
+
+        AppState.database = parsed;
+        AppState.page = 1;
+
+        const snapshot = {
+            timestamp: new Date().toISOString(),
+            fileName,
+            data: parsed.map(d => ({
+                ...d,
+                dataInc: d.dataInc ? d.dataInc.toISOString() : null,
+                dataProg: d.dataProg ? d.dataProg.toISOString() : null
+            }))
+        };
+        try { localStorage.setItem('sigap_base', JSON.stringify(snapshot)); } catch(e) {}
+
+        updateLastUpdateUI(snapshot.timestamp, fileName);
+        hideLoading();
+
+        if (dateWarnings > 0) showToast(`⚠️ ${dateWarnings} datas inválidas ignoradas`, 3000, '#f97316');
+        else showToast(`✓ ${parsed.length} registros importados`);
+
+        sync();
+    } catch(err) {
+        hideLoading();
+        alert('Erro ao processar planilha: ' + err.message);
+    }
+}
+
+function normalizeSituacao(raw) {
+    if (raw.includes('EXECUTADO') || raw.includes('CONCLU')) return 'EXECUTADO';
+    if (raw.includes('EXECUÇÃO') || raw.includes('EXECUCAO') || raw.includes('EXEC')) return 'EXECUÇÃO';
+    if (raw.includes('VISTORIA')) return 'VISTORIA';
+    if (raw.includes('PROGRAMADO')) return 'PROGRAMADO';
+    if (raw.includes('PLANEJAMENTO')) return 'PLANEJAMENTO';
+    return raw || 'PLANEJAMENTO';
+}
+
+function tryRestoreFromStorage() {
+    try {
+        const raw = localStorage.getItem('sigap_base');
+        if (!raw) return;
+        const snapshot = JSON.parse(raw);
+        if (!snapshot.data || !snapshot.data.length) return;
+
+        AppState.database = snapshot.data.map(d => ({
+            ...d,
+            dataInc:  d.dataInc  ? new Date(d.dataInc)  : null,
+            dataProg: d.dataProg ? new Date(d.dataProg) : null,
+        }));
+
+        updateLastUpdateUI(snapshot.timestamp, snapshot.fileName);
+        sync();
+    } catch(e) {}
+}
+
+function updateLastUpdateUI(isoTimestamp, fileName) {
+    const box = document.getElementById('lastUpdateBox');
+    const txt = document.getElementById('lastUpdateTime');
+    if (box && txt) {
+        const d = new Date(isoTimestamp);
+        txt.textContent = d.toLocaleString('pt-BR') + (fileName ? ` (${fileName})` : '');
+        box.style.display = 'block';
+    }
+}
+
+// ─────────────────────────────────────────────
+// PARSE DE DATA ROBUSTO
+// ─────────────────────────────────────────────
+function parseDate(v) {
+    if (v === null || v === undefined || v === '' || v === -1) return { date: null, valid: false };
+    try {
+        if (typeof v === 'number') {
+            if (v < 1 || v > 100000) return { date: null, valid: false };
+            const d = new Date((v - 25569) * 86400 * 1000);
+            return isNaN(d) ? { date: null, valid: false } : { date: d, valid: true };
+        }
+        const s = String(v).trim();
+        if (!s) return { date: null, valid: false };
+        const parts = s.split(/[-/]/);
+        let d;
+        if (parts.length === 3) {
+            if (parts[0].length === 4) d = new Date(+parts[0], +parts[1]-1, +parts[2]);
+            else d = new Date(+parts[2], +parts[1]-1, +parts[0]);
+        } else {
+            d = new Date(s);
+        }
+        return isNaN(d) ? { date: null, valid: false } : { date: d, valid: true };
+    } catch(e) { return { date: null, valid: false }; }
+}
+
+// ─────────────────────────────────────────────
+// FILTROS & SYNC
+// ─────────────────────────────────────────────
+function onFilterChange() {
+    AppState.page = 1;
+    sync();
+}
+
+function sync() {
+    const term = document.getElementById('mainSearch').value.toLowerCase();
+    const stat = document.getElementById('filterStatus').value || AppState.fKpi;
+    const dtIniVal = document.getElementById('filterDtIni').value;
+    const dtFimVal = document.getElementById('filterDtFim').value;
+    const dtIni = dtIniVal ? new Date(dtIniVal) : null;
+    const dtFim = dtFimVal ? new Date(dtFimVal + 'T23:59:59') : null;
+
+    AppState.filtered = AppState.database.filter(d => {
+        const procStr = (d.tipoProc + ' ' + d.numProc).toLowerCase();
+        const txt = (d.ordem + d.endereco + d.bairro + procStr + d.problema).toLowerCase().includes(term);
+        const st = !stat || d.situacao.includes(stat);
+        const gar = !AppState.fGargalo || (d.diasNum > 30 && !d.isDone);
+        const s60 = !AppState.f60Dias || (d.diasNum > 60 && !d.isDone);
+        const periodo = (!dtIni || (d.dataInc && d.dataInc >= dtIni)) && (!dtFim || (d.dataInc && d.dataInc <= dtFim));
+
+        // Filtro por insight do Oráculo
+        let orFilt = true;
+        if (AppState.fOraculoFilter) {
+            const f = AppState.fOraculoFilter;
+            if (f.type === 'criticos') orFilt = !d.isDone && d.diasNum > 60;
+            else if (f.type === 'gargalos') orFilt = !d.isDone && d.diasNum > 30;
+            else if (f.type === 'bairro') orFilt = d.bairro === f.value;
+            else if (f.type === 'preGargalo') orFilt = !d.isDone && d.diasNum > 15 && d.diasNum <= 30;
+            else if (f.type === 'ativos') orFilt = !d.isDone;
+            else if (f.type === 'novosUltimoMes') {
+                const ref = new Date(); ref.setDate(ref.getDate() - 30);
+                orFilt = d.dataInc && d.dataInc >= ref;
+            }
+        }
+
+        return txt && st && gar && s60 && periodo && orFilt;
+    });
+
+    // Ordenação
+    const col = AppState.sortCol;
+    AppState.filtered.sort((a, b) => {
+        let va = a[col], vb = b[col];
+        if (va instanceof Date && vb instanceof Date) return AppState.sortDir * (va - vb);
+        if (va === null || va === undefined) return 1;
+        if (vb === null || vb === undefined) return -1;
+        return AppState.sortDir * String(va).localeCompare(String(vb), 'pt-BR', { numeric: true });
+    });
+
+    updateUI();
+    updateOraculo();
+}
+
+function ordenar(col) {
+    if (AppState.sortCol === col) AppState.sortDir *= -1;
+    else { AppState.sortCol = col; AppState.sortDir = 1; }
+    AppState.page = 1;
+    sync();
+}
+
+function toggleGargalo() {
+    AppState.fGargalo = !AppState.fGargalo;
+    const btn = document.getElementById('btnGargalo');
+    if (AppState.fGargalo) {
+        btn.style.background = 'var(--warning)';
+        btn.style.color = '#000';
+    } else {
+        btn.style.background = 'transparent';
+        btn.style.color = 'var(--warning)';
+    }
+    AppState.page = 1;
+    sync();
+}
+
+function toggle60Dias() {
+    AppState.f60Dias = !AppState.f60Dias;
+    const btn = document.getElementById('btn60');
+    btn.classList.toggle('active-60', AppState.f60Dias);
+    AppState.page = 1;
+    sync();
+}
+
+function filtrarPorKpi(status) {
+    // Toggle
+    if (AppState.fKpi === status) {
+        AppState.fKpi = '';
+        document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('kpi-active'));
+    } else {
+        AppState.fKpi = status;
+        document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('kpi-active'));
+        const idMap = { 'PLANEJAMENTO': 'kpiPlan', 'PROGRAMADO': 'kpiProg', 'VISTORIA': 'kpiVist', 'EXECUÇÃO': 'kpiExec', 'EXECUTADO': 'kpiDone' };
+        const el = document.getElementById(idMap[status]);
+        if (el) el.classList.add('kpi-active');
+        document.getElementById('filterStatus').value = '';
+    }
+    AppState.page = 1;
+    sync();
+}
+
+function limparFiltros() {
+    document.getElementById('mainSearch').value = '';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterDtIni').value = '';
+    document.getElementById('filterDtFim').value = '';
+    AppState.fGargalo = false;
+    AppState.f60Dias = false;
+    AppState.fKpi = '';
+    AppState.fOraculoFilter = null;
+    const btnG = document.getElementById('btnGargalo');
+    btnG.style.background = 'transparent';
+    btnG.style.color = 'var(--warning)';
+    document.getElementById('btn60').classList.remove('active-60');
+    document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('kpi-active'));
+    document.querySelectorAll('.insight-row').forEach(r => r.classList.remove('active-filter'));
+    document.getElementById('oraculoFilterBadge').classList.remove('show');
+    AppState.page = 1;
+    sync();
+}
+
+// ─────────────────────────────────────────────
+// UPDATE UI — TABELA + KPIs + CHART
+// ─────────────────────────────────────────────
+function updateUI() {
+    const body = document.getElementById('tableBody');
+    let k = { PLANEJAMENTO: 0, PROGRAMADO: 0, VISTORIA: 0, 'EXECUÇÃO': 0, EXECUTADO: 0 };
+
+    // KPIs do total do banco (não do filtrado)
+    AppState.database.forEach(d => {
+        if (k[d.situacao] !== undefined) k[d.situacao]++;
+        else k['PLANEJAMENTO']++;
+    });
+
+    // Paginação
+    const total = AppState.filtered.length;
+    const ps = AppState.pageSize;
+    const totalPages = Math.max(1, Math.ceil(total / ps));
+    if (AppState.page > totalPages) AppState.page = totalPages;
+    const start = (AppState.page - 1) * ps;
+    const pageData = AppState.filtered.slice(start, start + ps);
+
+    body.innerHTML = pageData.map(d => {
+        const color = STATUS_COLORS[d.situacao] || 'var(--warning)';
+        const dot = d.isDone ? 'dot-done' : (d.diasNum > 60 ? 'dot-red' : (d.diasNum > 30 ? 'dot-red' : (d.diasNum > 15 ? 'dot-yellow' : 'dot-green')));
+        const rowClass = d.isDone ? 'row-executed' : '';
+        const diasDisplay = d.isDone
+            ? '<span style="color:var(--text-muted)">Concluído</span>'
+            : (d.diasNum > 0 ? `<b style="color:${d.diasNum > 60 ? 'var(--danger)' : d.diasNum > 30 ? 'var(--exec)' : 'inherit'}">${d.diasNum} d</b>` : '—');
+
+        return `<tr class="${rowClass}">
+            <td><input type="checkbox" class="row-check" data-id="${d.id}" onclick="updateCount()"></td>
+            <td style="color:var(--text-muted)">${d.dataInc ? d.dataInc.toLocaleDateString('pt-BR') : '—'}</td>
+            <td>
+                <b style="cursor:pointer; color:var(--accent);" onclick="copiar('${d.ordem}')">${d.ordem}</b>
+                ${d.numProc ? `<br><small style="color:var(--text-muted)">${d.tipoProc} ${d.numProc}</small>` : ''}
+            </td>
+            <td style="font-size:10px; max-width:180px;">${d.endereco || '—'}</td>
+            <td style="font-size:10px;">${d.bairro || '—'}</td>
+            <td><span class="status-tag" style="background:${color}18; color:${color}; border:1px solid ${color}40">${d.situacao}</span></td>
+            <td style="color:var(--warning); font-size:10px;">${d.dataProg ? d.dataProg.toLocaleDateString('pt-BR') : '—'}</td>
+            <td><span class="dot ${dot}"></span>${diasDisplay}</td>
+            <td><button onclick="openDetail(${d.id})" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:10px;" title="Detalhes">↗</button></td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('kPlan').innerText = k['PLANEJAMENTO'];
+    document.getElementById('kProg').innerText = k['PROGRAMADO'];
+    document.getElementById('kVist').innerText = k['VISTORIA'];
+    document.getElementById('kExec').innerText = k['EXECUÇÃO'];
+    document.getElementById('kDone').innerText = k['EXECUTADO'];
+
+    AppState.myChart.data.datasets[0].data = [
+        k['PLANEJAMENTO'], k['PROGRAMADO'], k['VISTORIA'], k['EXECUÇÃO'], k['EXECUTADO']
+    ];
+    AppState.myChart.update('none');
+
+    const endIdx = Math.min(start + ps, total);
+    document.getElementById('recordCount').innerText =
+        total === 0
+            ? 'Nenhum registro encontrado'
+            : `Exibindo ${start + 1}–${endIdx} de ${total} registro${total !== 1 ? 's' : ''}`;
+
+    renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+    const pg = document.getElementById('pagination');
+    if (totalPages <= 1) { pg.innerHTML = ''; return; }
+    let html = `<button class="pg-btn" onclick="goPage(${AppState.page-1})" ${AppState.page===1?'disabled':''}>‹</button>`;
+    for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && Math.abs(i - AppState.page) > 2 && i !== 1 && i !== totalPages) {
+            if (i === 2 || i === totalPages - 1) html += `<span style="color:var(--text-muted);padding:0 4px">…</span>`;
+            continue;
+        }
+        html += `<button class="pg-btn ${i===AppState.page?'active':''}" onclick="goPage(${i})">${i}</button>`;
+    }
+    html += `<button class="pg-btn" onclick="goPage(${AppState.page+1})" ${AppState.page===totalPages?'disabled':''}>›</button>`;
+    pg.innerHTML = html;
+}
+
+function goPage(p) {
+    AppState.page = p;
+    updateUI();
+    document.querySelector('.table-container').scrollTop = 0;
+}
+
+// ─────────────────────────────────────────────
+// ENGINE ORÁCULO — INSIGHTS CLICÁVEIS
+// ─────────────────────────────────────────────
+function updateOraculo() {
+    const db = AppState.database;
+    const empty = document.getElementById('oraculoEmpty');
+    const box = document.getElementById('oraculoInsights');
+    const hint = document.getElementById('oraculoHint');
+
+    if (!db.length) {
+        empty.style.display = 'block';
+        box.style.display = 'none';
+        hint.style.display = 'none';
+        return;
+    }
+
+    empty.style.display = 'none';
+    box.style.display = 'flex';
+    hint.style.display = 'block';
+
+    const ativos = db.filter(d => !d.isDone);
+    const gargalos = ativos.filter(d => d.diasNum > 30);
+    const criticos = ativos.filter(d => d.diasNum > 60);
+    const preGargalo = ativos.filter(d => d.diasNum > 15 && d.diasNum <= 30);
+    const total = db.length;
+    const concluidos = db.filter(d => d.isDone).length;
+    const taxaResolucao = total > 0 ? Math.round((concluidos / total) * 100) : 0;
+
+    const bairroGargalo = {};
+    gargalos.forEach(d => { if (d.bairro) bairroGargalo[d.bairro] = (bairroGargalo[d.bairro] || 0) + 1; });
+    const topBairros = Object.entries(bairroGargalo).sort((a,b) => b[1]-a[1]).slice(0,3);
+
+    const umMesAtras = new Date(); umMesAtras.setDate(umMesAtras.getDate() - 30);
+    const novosUltimoMes = db.filter(d => d.dataInc && d.dataInc >= umMesAtras).length;
+
+    const insights = [];
+
+    if (criticos.length > 0) {
+        insights.push({ badge: 'badge-danger', label: '🚨 Crítico', text: `${criticos.length} OS com +60 dias. Risco operacional — mobilização urgente.`, filter: { type: 'criticos' } });
+    }
+    if (gargalos.length > 0) {
+        insights.push({ badge: 'badge-warning', label: '⚠️ Gargalo', text: `${gargalos.length} OS ultrapassaram 30 dias sem movimentação.`, filter: { type: 'gargalos' } });
+    }
+    if (ativos.length > 0 && criticos.length === 0 && gargalos.length === 0) {
+        insights.push({ badge: 'badge-success', label: '✓ Normal', text: `Todas as ${ativos.length} OS abertas estão dentro do prazo.`, filter: { type: 'ativos' } });
+    }
+    topBairros.forEach(([bairro, n]) => {
+        insights.push({ badge: 'badge-danger', label: `📍 ${bairro}`, text: `${n} gargalo${n>1?'s':''} concentrado${n>1?'s':''} neste bairro.`, filter: { type: 'bairro', value: bairro } });
+    });
+    if (preGargalo.length > 0) {
+        insights.push({ badge: 'badge-warning', label: '🔮 Atenção', text: `${preGargalo.length} OS entre 15–30 dias podem virar gargalo.`, filter: { type: 'preGargalo' } });
+    }
+    insights.push({ badge: taxaResolucao >= 50 ? 'badge-success' : 'badge-warning', label: '📈 Resolução', text: `Taxa: ${taxaResolucao}% (${concluidos}/${total}). ${novosUltimoMes} novas OS no último mês.`, filter: { type: 'novosUltimoMes' } });
+
+    const currentFilter = AppState.fOraculoFilter;
+
+    box.innerHTML = insights.map((ins, i) => {
+        const isActive = currentFilter && JSON.stringify(currentFilter) === JSON.stringify(ins.filter);
+        return `<div class="insight-row ${isActive ? 'active-filter' : ''}" onclick="aplicarInsightFilter(${i})" data-idx="${i}">
+            <span class="insight-badge ${ins.badge}">${ins.label}</span>
+            <span class="insight-text">${ins.text}</span>
+        </div>`;
+    }).join('');
+
+    // Guardar insights para uso no filtro
+    AppState._insights = insights;
+}
+
+function aplicarInsightFilter(idx) {
+    const ins = AppState._insights[idx];
+    if (!ins) return;
+
+    const isSame = AppState.fOraculoFilter && JSON.stringify(AppState.fOraculoFilter) === JSON.stringify(ins.filter);
+
+    if (isSame) {
+        // desativar
+        AppState.fOraculoFilter = null;
+        document.getElementById('oraculoFilterBadge').classList.remove('show');
+    } else {
+        AppState.fOraculoFilter = ins.filter;
+        document.getElementById('oraculoFilterBadge').classList.add('show');
+    }
+    AppState.page = 1;
+    sync();
+}
+
+// ─────────────────────────────────────────────
+// DETALHE DA OS
+// ─────────────────────────────────────────────
+function openDetail(id) {
+    const d = AppState.database.find(x => x.id === id);
+    if (!d) return;
+
+    const color = STATUS_COLORS[d.situacao] || 'var(--warning)';
+
+    let diag = '';
+    if (d.isDone) {
+        diag = '✅ <b>CONCLUÍDO:</b> Serviço executado e finalizado. Relógio de ociosidade encerrado.';
+    } else if (d.diasNum > 60) {
+        diag = `🚨 <b>CRÍTICO:</b> ${d.diasNum} dias de ociosidade. Risco operacional elevado. Mobilização urgente recomendada.`;
+    } else if (d.diasNum > 30) {
+        diag = `⚠️ <b>ALERTA:</b> ${d.diasNum} dias sem movimentação. Requer prioridade no próximo planejamento de campo.`;
+    } else if (d.diasNum > 15) {
+        diag = `🔶 <b>ATENÇÃO:</b> ${d.diasNum} dias em aberto. Monitorar para evitar gargalo.`;
+    } else {
+        diag = `✔️ <b>NORMAL:</b> Demanda em trâmite regular. Seguir fluxo padrão de execução.`;
+    }
+
+    document.getElementById('detailContent').innerHTML = `
+        <h2>OS ${d.ordem}</h2>
+        <h3>${d.tipoProc} ${d.numProc}</h3>
+        <span class="status-tag" style="background:${color}18; color:${color}; border:1px solid ${color}40; font-size:11px; padding:5px 10px;">${d.situacao}</span>
+        <hr class="detail-divider">
+        <div class="detail-row"><label>Endereço</label><span>${d.endereco || '—'}</span></div>
+        <div class="detail-row"><label>Bairro</label><span>${d.bairro || '—'}</span></div>
+        <div class="detail-row"><label>Problema Citado</label><span>${d.problema || '—'}</span></div>
+        <hr class="detail-divider">
+        <div class="detail-row"><label>Data de Inclusão</label><span>${d.dataInc ? d.dataInc.toLocaleDateString('pt-BR') : '—'}</span></div>
+        <div class="detail-row"><label>Data Programada</label><span>${d.dataProg ? d.dataProg.toLocaleDateString('pt-BR') : 'Não definida'}</span></div>
+        <div class="detail-row"><label>Dias em Aberto</label><span>${d.isDone ? 'Concluído' : (d.diasNum + ' dias')}</span></div>
+        <hr class="detail-divider">
+        <div class="detail-row"><label>🧠 Diagnóstico do Sistema</label></div>
+        <div class="detail-diag">${diag}</div>
+        <div class="detail-actions">
+            <button class="btn-action" onclick="copiar('${d.ordem}')" style="background:var(--card-bg); border:1px solid var(--border); color:#fff; width:100%; justify-content:center;">📋 Copiar Nº da OS</button>
+            <button class="btn-action" onclick="gerarOSUnica(${d.id})" style="background:var(--success); color:#000; width:100%; justify-content:center; font-weight:800;">📄 Gerar OS em PDF</button>
+        </div>
+    `;
+
+    document.getElementById('detailOverlay').classList.add('open');
+    document.getElementById('detailPanel').classList.add('open');
+}
+
+function closeDetail() {
+    document.getElementById('detailOverlay').classList.remove('open');
+    document.getElementById('detailPanel').classList.remove('open');
+}
+
+// ─────────────────────────────────────────────
+// CHECKBOXES
+// ─────────────────────────────────────────────
+function updateCount() {
+    const c = document.querySelectorAll('.row-check:checked').length;
+    document.getElementById('selCount').innerText = c > 0 ? `(${c})` : '';
+}
+function toggleAllChecks(m) {
+    document.querySelectorAll('.row-check').forEach(c => c.checked = m.checked);
+    updateCount();
+}
+function getSelectedItems() {
+    return Array.from(document.querySelectorAll('.row-check:checked'))
+        .map(c => AppState.database.find(d => d.id == c.dataset.id))
+        .filter(Boolean);
+}
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function copiar(t) {
+    navigator.clipboard.writeText(t).catch(() => {});
+    showToast('✓ Copiado: ' + t);
+}
+function showToast(msg, dur = 2000, bg = '') {
+    const toast = document.getElementById('toast');
+    toast.innerText = msg;
+    if (bg) toast.style.background = bg;
+    else toast.style.background = 'var(--success)';
+    toast.className = 'show';
+    setTimeout(() => { toast.className = ''; }, dur);
+}
+function showLoading(msg = 'Processando...') {
+    document.getElementById('loadingText').innerText = msg;
+    document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('show');
+}
+
+// ─────────────────────────────────────────────
+// GERAÇÃO DE PDF — SUPER OS PROFISSIONAL
+// ─────────────────────────────────────────────
+function gerarOSUnica(id) {
+    const d = AppState.database.find(x => x.id === id);
+    if (!d) return;
+    gerarOSComDados([d]);
+}
+
+function gerarSuperOSPDF() {
+    const sel = getSelectedItems();
+    if (!sel.length) return alert('Selecione ao menos um item na tabela.');
+    gerarOSComDados(sel);
+}
+
+function gerarOSComDados(itens) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const dataAtual = new Date().toLocaleDateString('pt-BR');
+    const horaAtual = new Date().toLocaleTimeString('pt-BR');
+    const PAGE_W = 210;
+    const PAGE_H = 297;
+
+    itens.forEach((d, idx) => {
+        if (idx > 0) doc.addPage();
+
+        const isUrgente = !d.isDone && d.diasNum > 30;
+        const dataProgFmt = d.dataProg ? d.dataProg.toLocaleDateString('pt-BR') : '___/___/______';
+
+        // ── BORDA DA PÁGINA ──
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.8);
+        doc.rect(8, 8, PAGE_W - 16, PAGE_H - 16);
+
+        // ── CABEÇALHO ──
+        doc.setFillColor(15, 23, 42); // sidebar-bg
+        doc.rect(8, 8, PAGE_W - 16, 30, 'F');
+
+        // Título principal
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(13);
+        doc.text('PREFEITURA MUNICIPAL DE TAUBATÉ', PAGE_W / 2, 17, { align: 'center' });
+
+        doc.setFontSize(9);
+        doc.setTextColor(148, 163, 184);
+        doc.text('Secretaria Municipal de Obras e Serviços Urbanos', PAGE_W / 2, 22, { align: 'center' });
+        doc.text('Sistema Integrado de Gestão de Águas Pluviais — SIGAP', PAGE_W / 2, 26.5, { align: 'center' });
+
+        // Box OS nº
+        doc.setFillColor(59, 130, 246);
+        doc.roundedRect(PAGE_W - 55, 10, 44, 24, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text('ORDEM DE SERVIÇO Nº', PAGE_W - 33, 16.5, { align: 'center' });
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(18);
+        doc.text(String(d.ordem), PAGE_W - 33, 26, { align: 'center' });
+
+        // ── URGÊNCIA ──
+        if (isUrgente) {
+            doc.setFillColor(239, 68, 68);
+            doc.roundedRect(8, 40, PAGE_W - 16, 8, 1, 1, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`🚨  PRIORIDADE: GARGALO — ${d.diasNum} DIAS DE OCIOSIDADE — MOBILIZAÇÃO URGENTE RECOMENDADA`, PAGE_W / 2, 45.5, { align: 'center' });
+        }
+
+        // ── DADOS GERAIS ──
+        const y0 = isUrgente ? 52 : 44;
+        doc.setFillColor(241, 245, 249);
+        doc.rect(8, y0, PAGE_W - 16, 6, 'F');
+        doc.setTextColor(30, 41, 59);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.text('DADOS GERAIS DA DEMANDA', 12, y0 + 4.2);
+
+        // Tabela dados gerais
+        doc.autoTable({
+            startY: y0 + 6,
+            margin: { left: 8, right: 8 },
+            theme: 'grid',
+            styles: { fontSize: 8.5, cellPadding: 2.5, textColor: [30, 41, 59], lineColor: [203, 213, 225] },
+            headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontStyle: 'bold', fontSize: 7 },
+            columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: 'auto' } },
+            body: [
+                ['Processo / Protocolo', `${d.tipoProc || ''} ${d.numProc || ''}`.trim() || '—'],
+                ['Endereço Completo', d.endereco || '—'],
+                ['Bairro', d.bairro || '—'],
+                ['Problema / Demanda Relatada', d.problema || '—'],
+                ['Situação Atual', d.situacao],
+                ['Data de Inclusão no Sistema', d.dataInc ? d.dataInc.toLocaleDateString('pt-BR') : '—'],
+                ['Data Programada para Atendimento', dataProgFmt],
+                ['Dias em Aberto (Ociosidade)', d.isDone ? 'CONCLUÍDO' : `${d.diasNum} dias`],
+            ]
+        });
+
+        // ── EQUIPE DE CAMPO ──
+        const y1 = doc.lastAutoTable.finalY + 4;
+        doc.setFillColor(241, 245, 249);
+        doc.rect(8, y1, PAGE_W - 16, 6, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(30, 41, 59);
+        doc.text('EQUIPE DE CAMPO', 12, y1 + 4.2);
+
+        doc.autoTable({
+            startY: y1 + 6,
+            margin: { left: 8, right: 8 },
+            theme: 'grid',
+            styles: { fontSize: 8.5, cellPadding: 3, textColor: [30, 41, 59], lineColor: [203, 213, 225] },
+            headStyles: { fillColor: [30, 41, 59], textColor: [248, 250, 252], fontStyle: 'bold', fontSize: 7.5 },
+            head: [['Função', 'Nome do Servidor / Colaborador', 'Matrícula', 'Assinatura']],
+            body: [
+                ['Encarregado / Fiscal de Obra', '', '', ''],
+                ['Motorista / Operador de Máquina', '', '', ''],
+                ['Pedreiro', '', '', ''],
+                ['Ajudante de Campo', '', '', ''],
+                ['Ajudante de Campo', '', '', ''],
+            ],
+            columnStyles: { 0: { cellWidth: 55 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 25 }, 3: { cellWidth: 40 } }
+        });
+
+        // ── MATERIAIS E CHECKLIST ──
+        const y2 = doc.lastAutoTable.finalY + 4;
+        doc.setFillColor(241, 245, 249);
+        doc.rect(8, y2, PAGE_W - 16, 6, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(30, 41, 59);
+        doc.text('MATERIAIS UTILIZADOS E CHECKLIST DE CAMPO', 12, y2 + 4.2);
+
+        doc.autoTable({
+            startY: y2 + 6,
+            margin: { left: 8, right: 8 },
+            theme: 'grid',
+            styles: { fontSize: 8, cellPadding: 2.5, textColor: [30, 41, 59], lineColor: [203, 213, 225] },
+            head: [['Material', 'Qtd', 'Unid', 'Serviço Realizado', 'Concluído']],
+            headStyles: { fillColor: [30, 41, 59], textColor: [248, 250, 252], fontStyle: 'bold', fontSize: 7.5 },
+            body: [
+                ['Areia / Brita', '', 'm³', 'Limpeza de Galeria / Ramal', '☐'],
+                ['Cimento', '', 'sc', 'Desobstrução de Boca de Lobo', '☐'],
+                ['Bloco / Tijolo', '', 'un', 'Troca de Grelha / Tampa', '☐'],
+                ['Tampa / Grelha', '', 'un', 'Recomposição de Pavimento', '☐'],
+                ['Tubulação (Ø ____)', '', 'm', 'Outros: ___________________', '☐'],
+            ],
+            columnStyles: { 0: { cellWidth: 42 }, 1: { cellWidth: 16 }, 2: { cellWidth: 16 }, 3: { cellWidth: 'auto' }, 4: { cellWidth: 22, halign: 'center' } }
+        });
+
+        // ── RELATÓRIO DE EXECUÇÃO ──
+        const y3 = doc.lastAutoTable.finalY + 4;
+        doc.setFillColor(241, 245, 249);
+        doc.rect(8, y3, PAGE_W - 16, 6, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(30, 41, 59);
+        doc.text('RELATÓRIO DE EXECUÇÃO / DIAGNÓSTICO TÉCNICO DE CAMPO', 12, y3 + 4.2);
+
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.3);
+        doc.rect(8, y3 + 6, PAGE_W - 16, 28);
+        doc.setTextColor(148, 163, 184);
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(7.5);
+        doc.text('Descreva o diagnóstico encontrado, as intervenções executadas, materiais aplicados, condições do local e quaisquer', 12, y3 + 12);
+        doc.text('observações técnicas relevantes para o histórico desta OS.', 12, y3 + 16.5);
+
+        // ── DATAS DE ENTREGA E EXECUÇÃO ──
+        const y4 = y3 + 6 + 28 + 4;
+        doc.autoTable({
+            startY: y4,
+            margin: { left: 8, right: 8 },
+            theme: 'grid',
+            styles: { fontSize: 9, cellPadding: 3, textColor: [30, 41, 59], lineColor: [203, 213, 225], minCellHeight: 12 },
+            headStyles: { fillColor: [30, 41, 59], textColor: [248, 250, 252], fontStyle: 'bold', fontSize: 8, halign: 'center' },
+            head: [['DATA DE RECEBIMENTO / EMISSÃO', 'DATA DE ENTREGA (Prazo)', 'DATA DE EXECUÇÃO (Realização)', 'VISTO FISCAL / ENCARREGADO']],
+            body: [
+                [dataAtual, dataProgFmt, '____/____/________', '']
+            ],
+            columnStyles: { 0: { halign: 'center' }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' } }
+        });
+
+        // ── ASSINATURAS ──
+        const y5 = doc.lastAutoTable.finalY + 8;
+        const col1 = 20, col2 = PAGE_W / 2 + 10;
+        const lineW = 75;
+
+        doc.setDrawColor(100, 116, 139);
+        doc.setLineWidth(0.4);
+        // linha 1
+        doc.line(col1, y5, col1 + lineW, y5);
+        doc.line(col2, y5, col2 + lineW, y5);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(30, 41, 59);
+        doc.text('Encarregado da Obra', col1 + lineW / 2, y5 + 4.5, { align: 'center' });
+        doc.text('Fiscal / Responsável Técnico', col2 + lineW / 2, y5 + 4.5, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(100, 116, 139);
+        doc.text('Secretaria de Obras — Taubaté', col1 + lineW / 2, y5 + 8.5, { align: 'center' });
+        doc.text('Secretaria de Obras — Taubaté', col2 + lineW / 2, y5 + 8.5, { align: 'center' });
+
+        // ── RODAPÉ ──
+        doc.setFillColor(15, 23, 42);
+        doc.rect(8, PAGE_H - 18, PAGE_W - 16, 10, 'F');
+        doc.setTextColor(148, 163, 184);
+        doc.setFontSize(6.5);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`SIGAP Oráculo Platinum  |  Gerado em ${dataAtual} às ${horaAtual}  |  OS ${d.ordem}  |  Secretaria de Obras — Taubaté`, PAGE_W / 2, PAGE_H - 12, { align: 'center' });
+        doc.text(`Este documento possui validade técnica e deve ser arquivado após a execução do serviço.`, PAGE_W / 2, PAGE_H - 8.5, { align: 'center' });
+
+        // Número de página
+        doc.setTextColor(59, 130, 246);
+        doc.setFontSize(7);
+        doc.text(`${idx + 1} / ${itens.length}`, PAGE_W - 12, PAGE_H - 11, { align: 'center' });
+    });
+
+    doc.save(`SuperOS_SIGAP_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.pdf`);
+    showToast(`✓ ${itens.length} OS gerada${itens.length > 1 ? 's' : ''} em PDF`);
+}
+
+// ─────────────────────────────────────────────
+// GERAR PARECER PDF — PROFISSIONAL
+// ─────────────────────────────────────────────
+function gerarParecerPDF() {
+    const sel = getSelectedItems();
+    if (!sel.length) return alert('Selecione ao menos um item na tabela.');
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const dataAtual = new Date().toLocaleDateString('pt-BR');
+    const horaAtual = new Date().toLocaleTimeString('pt-BR');
+    const PAGE_W = 210;
+    const PAGE_H = 297;
+    const numParecer = `PT-${new Date().getFullYear()}-${String(Math.floor(Math.random()*9000)+1000)}`;
+
+    // ── BORDA ──
+    doc.setDrawColor(59, 130, 246);
+    doc.setLineWidth(1.2);
+    doc.rect(6, 6, PAGE_W - 12, PAGE_H - 12);
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.3);
+    doc.rect(8, 8, PAGE_W - 16, PAGE_H - 16);
+
+    // ── CABEÇALHO ──
+    doc.setFillColor(15, 23, 42);
+    doc.rect(8, 8, PAGE_W - 16, 36, 'F');
+
+    // Linha azul decorativa
+    doc.setFillColor(59, 130, 246);
+    doc.rect(8, 44, PAGE_W - 16, 1.5, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.text('PARECER TÉCNICO E DIAGNÓSTICO', PAGE_W / 2, 18, { align: 'center' });
+    doc.setFontSize(11);
+    doc.text('DE INFRAESTRUTURA DE DRENAGEM URBANA', PAGE_W / 2, 24.5, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('SISTEMA ORÁCULO PLATINUM — SIGAP  |  SECRETARIA MUNICIPAL DE OBRAS  |  PREFEITURA DE TAUBATÉ', PAGE_W / 2, 30.5, { align: 'center' });
+
+    // Badge Nº Parecer
+    doc.setFillColor(59, 130, 246);
+    doc.roundedRect(PAGE_W - 55, 9, 46, 12, 2, 2, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.text('Nº DO PARECER', PAGE_W - 32, 13.5, { align: 'center' });
+    doc.setFontSize(9);
+    doc.text(numParecer, PAGE_W - 32, 18.5, { align: 'center' });
+
+    // Badge data
+    doc.setFillColor(30, 41, 59);
+    doc.roundedRect(PAGE_W - 55, 23, 46, 10, 2, 2, 'F');
+    doc.setTextColor(148, 163, 184);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.text('DATA DE EMISSÃO', PAGE_W - 32, 27, { align: 'center' });
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text(dataAtual, PAGE_W - 32, 31.5, { align: 'center' });
+
+    // ── EXPOSIÇÃO DE MOTIVOS ──
+    doc.setTextColor(30, 41, 59);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+
+    doc.setFillColor(241, 245, 249);
+    doc.rect(8, 47, PAGE_W - 16, 6, 'F');
+    doc.text('EXPOSIÇÃO DE MOTIVOS', 12, 51.2);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(51, 65, 85);
+    const motivo = `O presente documento, gerado de forma autônoma pelo Sistema Oráculo Platinum (SIGAP), apresenta o detalhamento situacional e o diagnóstico técnico das demandas ativas de drenagem urbana sob competência da Secretaria Municipal de Obras e Serviços Urbanos do Município de Taubaté. O presente parecer contempla ${sel.length} ordem${sel.length > 1 ? 'ns' : ''} de serviço selecionada${sel.length > 1 ? 's' : ''} para análise.`;
+    const mLines = doc.splitTextToSize(motivo, PAGE_W - 28);
+    doc.text(mLines, 12, 58);
+
+    // ── KPIs RESUMO ──
+    const ativos = sel.filter(d => !d.isDone);
+    const criticos = ativos.filter(d => d.diasNum > 60);
+    const gargalos = ativos.filter(d => d.diasNum > 30 && d.diasNum <= 60);
+    const normais = ativos.filter(d => d.diasNum <= 30);
+    const concluidos = sel.filter(d => d.isDone);
+    const yKpi = 58 + mLines.length * 4.5 + 4;
+
+    const kpis = [
+        { label: 'Total Analisado', val: sel.length, color: [59, 130, 246] },
+        { label: '🚨 Críticos +60d', val: criticos.length, color: [239, 68, 68] },
+        { label: '⚠️ Gargalos +30d', val: gargalos.length, color: [234, 179, 8] },
+        { label: '✓ Normais', val: normais.length, color: [34, 197, 94] },
+        { label: '✅ Concluídos', val: concluidos.length, color: [100, 116, 139] },
+    ];
+    const boxW = (PAGE_W - 22) / kpis.length;
+    kpis.forEach((k, i) => {
+        const bx = 10 + i * (boxW + 1.5);
+        doc.setFillColor(241, 245, 249);
+        doc.roundedRect(bx, yKpi, boxW, 16, 2, 2, 'F');
+        doc.setDrawColor(...k.color);
+        doc.setLineWidth(0.4);
+        doc.roundedRect(bx, yKpi, boxW, 16, 2, 2);
+        // Top bar
+        doc.setFillColor(...k.color);
+        doc.rect(bx, yKpi, boxW, 2.5);
+        doc.setTextColor(30, 41, 59);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.text(String(k.val), bx + boxW / 2, yKpi + 10, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6);
+        doc.setTextColor(100, 116, 139);
+        doc.text(k.label, bx + boxW / 2, yKpi + 14.5, { align: 'center' });
+    });
+
+    // ── TABELA DE DIAGNÓSTICO ──
+    const yTab = yKpi + 22;
+    doc.setFillColor(241, 245, 249);
+    doc.rect(8, yTab, PAGE_W - 16, 6, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(30, 41, 59);
+    doc.text('DIAGNÓSTICO DETALHADO POR ORDEM DE SERVIÇO', 12, yTab + 4.2);
+
+    const tableRows = sel.map(d => {
+        let diagStr = '';
+        let diagColor = [30, 41, 59];
+        if (d.isDone) {
+            diagStr = 'CONCLUÍDO: Serviço executado e finalizado conforme apontamento.';
+            diagColor = [34, 197, 94];
+        } else if (d.diasNum > 60) {
+            diagStr = `CRÍTICO: ${d.diasNum} dias de ociosidade. Risco operacional. Mobilização imediata.`;
+            diagColor = [239, 68, 68];
+        } else if (d.diasNum > 30) {
+            diagStr = `ALERTA: ${d.diasNum} dias sem movimentação. Requer ação prioritária.`;
+            diagColor = [234, 179, 8];
+        } else {
+            diagStr = `NORMAL: Demanda em trâmite regular. Seguir fluxo padrão.`;
+        }
+        return [
+            d.ordem,
+            `${d.tipoProc} ${d.numProc}`.trim(),
+            `${d.endereco}\n${d.bairro}`,
+            d.situacao,
+            d.dataInc ? d.dataInc.toLocaleDateString('pt-BR') : '—',
+            d.dataProg ? d.dataProg.toLocaleDateString('pt-BR') : '—',
+            d.isDone ? 'Concluído' : `${d.diasNum}d`,
+            diagStr
+        ];
+    });
+
+    doc.autoTable({
+        startY: yTab + 6,
+        margin: { left: 8, right: 8 },
+        theme: 'striped',
+        styles: { fontSize: 7.5, cellPadding: 2.5, textColor: [30, 41, 59], lineColor: [226, 232, 240], overflow: 'linebreak' },
+        headStyles: { fillColor: [15, 23, 42], textColor: [248, 250, 252], fontStyle: 'bold', fontSize: 7 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        head: [['OS', 'Processo', 'Localidade', 'Status', 'Inclusão', 'Prog.', 'Dias', 'Diagnóstico Técnico']],
+        body: tableRows,
+        columnStyles: {
+            0: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+            1: { cellWidth: 24 },
+            2: { cellWidth: 40 },
+            3: { cellWidth: 20 },
+            4: { cellWidth: 17, halign: 'center' },
+            5: { cellWidth: 17, halign: 'center' },
+            6: { cellWidth: 12, halign: 'center' },
+            7: { cellWidth: 'auto' }
+        },
+        didParseCell: function(data) {
+            if (data.column.index === 3 && data.section === 'body') {
+                const row = data.row.raw;
+                const st = row[3];
+                if (st === 'EXECUTADO') data.cell.styles.textColor = [34, 197, 94];
+                else if (st === 'EXECUÇÃO') data.cell.styles.textColor = [249, 115, 22];
+                else if (st === 'VISTORIA') data.cell.styles.textColor = [168, 85, 247];
+                else if (st === 'PROGRAMADO') data.cell.styles.textColor = [6, 182, 212];
+                data.cell.styles.fontStyle = 'bold';
+            }
+            if (data.column.index === 7 && data.section === 'body') {
+                const val = String(data.cell.raw);
+                if (val.startsWith('CRÍTICO')) data.cell.styles.textColor = [239, 68, 68];
+                else if (val.startsWith('ALERTA')) data.cell.styles.textColor = [180, 130, 0];
+                else if (val.startsWith('CONCLUÍDO')) data.cell.styles.textColor = [22, 140, 60];
+            }
+        }
+    });
+
+    // ── CONCLUSÃO TÉCNICA ──
+    const yConc = doc.lastAutoTable.finalY + 5;
+    doc.setFillColor(241, 245, 249);
+    doc.rect(8, yConc, PAGE_W - 16, 6, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(30, 41, 59);
+    doc.text('CONCLUSÃO TÉCNICA E RECOMENDAÇÕES', 12, yConc + 4.2);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(51, 65, 85);
+    const concl = criticos.length > 0
+        ? `Foram identificadas ${criticos.length} OS em estado CRÍTICO (superior a 60 dias de ociosidade), representando risco operacional e potencial exposição pública a riscos de alagamento. Recomenda-se mobilização imediata de equipes e prioridade máxima no próximo ciclo de planejamento. As demais ordens devem seguir o fluxo de trabalho padrão conforme cronograma vigente.`
+        : gargalos.length > 0
+        ? `Foram identificadas ${gargalos.length} OS em estado de ALERTA (superior a 30 dias de ociosidade). Recomenda-se prioridade na próxima rodada de planejamento de campo. As demais ordens estão em tramitação regular.`
+        : `Todas as ordens de serviço analisadas encontram-se dentro dos parâmetros operacionais regulares. Recomenda-se manutenção do cronograma vigente e monitoramento contínuo via sistema SIGAP.`;
+    const cLines = doc.splitTextToSize(concl, PAGE_W - 28);
+    doc.text(cLines, 12, yConc + 11);
+
+    // ── ASSINATURAS ──
+    const ySig = yConc + 11 + cLines.length * 4.5 + 10;
+    if (ySig < PAGE_H - 50) {
+        const col1 = 18, col2 = PAGE_W / 2 + 12;
+        const lineW = 70;
+
+        doc.setDrawColor(100, 116, 139);
+        doc.setLineWidth(0.4);
+        doc.line(col1, ySig, col1 + lineW, ySig);
+        doc.line(col2, ySig, col2 + lineW, ySig);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(30, 41, 59);
+        doc.text('Leonardo K. Veloso', col1 + lineW / 2, ySig + 5, { align: 'center' });
+        doc.text('Cesar de Carvalho', col2 + lineW / 2, ySig + 5, { align: 'center' });
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(100, 116, 139);
+        doc.text('Administrador — Sistema Oráculo / SIGAP', col1 + lineW / 2, ySig + 9.5, { align: 'center' });
+        doc.text('Responsável Administrativo — Secretaria de Obras', col2 + lineW / 2, ySig + 9.5, { align: 'center' });
+    }
+
+    // ── RODAPÉ ──
+    doc.setFillColor(15, 23, 42);
+    doc.rect(8, PAGE_H - 18, PAGE_W - 16, 10, 'F');
+    doc.setTextColor(148, 163, 184);
+    doc.setFontSize(6.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`SIGAP Oráculo Platinum  |  Parecer ${numParecer}  |  Emitido em ${dataAtual} às ${horaAtual}`, PAGE_W / 2, PAGE_H - 12, { align: 'center' });
+    doc.text('Documento gerado automaticamente pelo Sistema Oráculo. Validade técnica condicionada à assinatura dos responsáveis.', PAGE_W / 2, PAGE_H - 8.5, { align: 'center' });
+
+    doc.save(`Parecer_SIGAP_Oraculo_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.pdf`);
+    showToast(`✓ Parecer gerado em PDF (${sel.length} OS)`);
+}
+
+// ─────────────────────────────────────────────
+// AUTO-UPDATE — carrega dados_sigap.json do Python
+// ─────────────────────────────────────────────
+function carregarJsonAutomatico(mostrarToast) {
+    fetch(`/dados?ts=${Date.now()}`)
+        .then(r => {
+            if (!r.ok) throw new Error('not found');
+            return r.json();
+        })
+        .then(snapshot => {
+            if (!snapshot.data || !snapshot.data.length) return;
+            AppState.database = snapshot.data.map(d => ({
+                ...d,
+                dataInc:  d.dataInc  ? new Date(d.dataInc)  : null,
+                dataProg: d.dataProg ? new Date(d.dataProg) : null,
+            }));
+            const ts = snapshot.timestamp ? new Date(snapshot.timestamp) : new Date();
+            updateLastUpdateUI(ts.toISOString(), '🔄 ' + (snapshot.fileName || 'OneDrive Auto'));
+            sync();
+            window._autoUpdateAtivo = true;
+            if (mostrarToast) showToast(`🔄 Dados atualizados — ${AppState.database.length} OS`);
+            const btn = document.getElementById('btnAutoUpdate');
+            if (btn) { btn.style.borderColor = 'var(--success)'; btn.style.color = 'var(--success)'; }
+        })
+        .catch(() => {
+            if (mostrarToast) showToast('⚠️ dados_sigap.json não encontrado. Execute o script Python.', 4000, '#f97316');
+            const btn = document.getElementById('btnAutoUpdate');
+            if (btn) { btn.style.borderColor = 'var(--danger)'; btn.style.color = 'var(--danger)'; }
+        });
+}
+
+function iniciarAutoUpdate() {
+    carregarJsonAutomatico(false);
+    // Verifica a cada 5 minutos se o JSON foi atualizado
+    setInterval(() => carregarJsonAutomatico(false), 5 * 60 * 1000);
+}
+
+
+
+</script>
+</body>
+</html>
