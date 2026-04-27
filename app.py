@@ -27,7 +27,7 @@ def main():
         }, ensure_ascii=False)
 
         # Carregar o seu Dashboard HTML
-        html_file = "Dashboard_v55_AutoUpdate (1).html"
+        html_file = "Dashboard_v55_AutoUpdate .html"
         if os.path.exists(html_file):
             with open(html_file, "r", encoding="utf-8") as f:
                 content = f.read()
